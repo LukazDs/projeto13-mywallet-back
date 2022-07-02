@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import bcrypt from 'bcrypt';
@@ -93,6 +93,56 @@ server.post("/sign-in", async (req, res) => {
     }
 
 });
+
+server.get('/userdata', async (req, res) => {
+    const { authorization } = req.headers;
+    const token = authorization?.replace('Bearer ', '');
+
+    try {
+        const session = await db.collection('sessions').findOne({ token });
+
+        if (!session) {
+            return res.status(401).send("Usuário não encontrado!");
+        }
+
+        const data = await db
+            .collection('registers')
+            .find({ userId: new ObjectId(session.userId) })
+            .toArray();
+
+        res.send(data);
+
+    } catch (error) {
+        res.status(500).send("Problema para puxar dados do usuário!");
+    }
+});
+
+// server.post('/insertValue', async (req, res) => {
+//     const post = req.body;
+//     const { authorization } = req.headers;
+//     const token = authorization?.replace('Bearer ', '');
+
+//     const postSchema = joi.object({
+//         titulo: joi.string().required(),
+//         post: joi.string().required()
+//     });
+
+//     const { error } = postSchema.validate(post);
+
+//     if (error) {
+//         return res.sendStatus(422);
+//     }
+
+//     const session = await db.collection('sessoes').findOne({ token });
+
+//     if (!session) {
+//         return res.sendStatus(401);
+//     }
+
+//     await db.collection('posts').insertOne({ ...post, userId: session.userId });
+//     res.status(201).send('Post criado com sucesso');
+// });
+
 
 server.listen(process.env.PORT, () => {
     console.log("Conexão estabelecida");
