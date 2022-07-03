@@ -54,7 +54,7 @@ server.post("/sign-up", async (req, res) => {
         }
 
         await db.collection("users").insertOne({ ...user, password: passwordHash });
-        console.log(users)
+
         res.sendStatus(201);
 
     } catch (error) {
@@ -81,10 +81,11 @@ server.post("/sign-in", async (req, res) => {
 
             await db.collection('sessions').insertOne({
                 token,
-                userId: user._id
+                userId: new ObjectId(userDb._id),
+                name: userDb.name
             });
 
-            return res.status(201).send({ token });
+            return res.status(201).send({ token, name: userDb.name });
         } else {
             return res.status(401).send('Senha ou email incorretos!');
         }
@@ -100,6 +101,8 @@ server.get('/userdata', async (req, res) => {
 
     try {
         const session = await db.collection('sessions').findOne({ token });
+        console.log("session", session)
+
 
         if (!session) {
             return res.status(401).send("Usuário não encontrado!");
@@ -110,38 +113,54 @@ server.get('/userdata', async (req, res) => {
             .find({ userId: new ObjectId(session.userId) })
             .toArray();
 
-        res.send(data);
+        res.send({ name: session.name, userData: data });
 
     } catch (error) {
         res.status(500).send("Problema para puxar dados do usuário!");
     }
 });
 
-// server.post('/insertValue', async (req, res) => {
-//     const post = req.body;
-//     const { authorization } = req.headers;
-//     const token = authorization?.replace('Bearer ', '');
+server.post('/insert-value', async (req, res) => {
+    const type = req.query.type;
+    const post = req.body;
+    const { authorization } = req.headers;
+    const token = authorization?.replace('Bearer ', '');
 
-//     const postSchema = joi.object({
-//         titulo: joi.string().required(),
-//         post: joi.string().required()
-//     });
+    const postSchema = joi.object({
+        value: joi.number().required(),
+        description: joi.string().required()
+    });
 
-//     const { error } = postSchema.validate(post);
+    const validation = postSchema.validate(post);
 
-//     if (error) {
-//         return res.sendStatus(422);
-//     }
+    if (!["add", "subtract"].find(v => v === type)) {
+        return res.status(500).send("Erro na especificação da rota!")
+    }
 
-//     const session = await db.collection('sessoes').findOne({ token });
+    if (validation.error) {
+        return res.status(422).send("Valores inválidos!");
+    }
 
-//     if (!session) {
-//         return res.sendStatus(401);
-//     }
+    try {
+        const session = await db.collection('sessions').findOne({ token });
 
-//     await db.collection('posts').insertOne({ ...post, userId: session.userId });
-//     res.status(201).send('Post criado com sucesso');
-// });
+        if (!session) {
+            return res.status(401).send("Usuário não encontrado!");
+        }
+
+        await db.collection('registers').insertOne({ 
+            ...post, 
+            type, 
+            userId: session.userId, 
+            time: dayjs().format("DD/MM") });
+
+        res.status(201).send('Post criado com sucesso');
+
+    } catch (error) {
+        res.status(500).send("Erro de Requisição!")
+    }
+
+});
 
 
 server.listen(process.env.PORT, () => {
