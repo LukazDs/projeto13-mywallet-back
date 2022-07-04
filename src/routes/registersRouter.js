@@ -1,4 +1,4 @@
-import { getRegisters, postRegister } from "../controllers/registersController.js"
+import { getRegisters, postRegister } from "../controllers/registersController.js";
 import validateUser from '../middlewares/validateUser.js';
 import { Router } from 'express';
 
