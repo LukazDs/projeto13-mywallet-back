@@ -18,8 +18,6 @@ export async function createUser(req, res) {
     try {
 
         const passwordHash = bcrypt.hashSync(user.password, 10);
-        //const confirmPasswordHash = bcrypt.hashSync(user.confirmPassword, 10);
-
         const userDb = await db.collection('users').findOne({ email: user.email });
 
         if (userDb) {
