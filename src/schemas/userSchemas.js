@@ -10,11 +10,11 @@ export const registerUserSchema = joi.object({
         .required(),
     password: joi
         .string()
-        .pattern(/[a-zA-Z0-9]{4,8}/)
+        //.pattern(/[a-zA-Z0-9]{4,8}/)
         .required(),
     confirmPassword: joi
         .string()
-        .pattern(/[a-zA-Z0-9]{4,8}/)
+        //.pattern(/[a-zA-Z0-9]{4,8}/)
         .required()
 });
 
