@@ -31,7 +31,7 @@ export const loginSchema = joi.object({
 
 export const postSchema = joi.object({
     value: joi
-        .number()
+        .number().integer()
         .required(),
     description: joi
         .string()
