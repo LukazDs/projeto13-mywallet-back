@@ -21,7 +21,7 @@ export const registerUserSchema = joi.object({
 export const loginSchema = joi.object({
     email: joi
         .string()
-        .pattern(/^[a-z0-9.]+@[a-z0-9]+\.[a-z]+\.([a-z]+)?$/i)
+        .pattern(/^[a-z0-9]+@[a-z0-9]+\.[a-z]/)
         .required(),
     password: joi
         .string()
